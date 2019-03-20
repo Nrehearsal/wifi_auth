@@ -5,6 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"github.com/Nrehearsal/wifi_auth/db"
+	"github.com/Nrehearsal/wifi_auth/jwt"
+	"encoding/base64"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Ping(c *gin.Context) {
@@ -32,8 +36,8 @@ func LoginCheck(c *gin.Context) {
 		return
 	}
 
-	mac := c.DefaultQuery("mac", "")
-	if mac == "" {
+	clientMac := c.DefaultQuery("mac", "")
+	if clientMac == "" {
 		log.Println("no mac")
 		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
 		return
@@ -41,65 +45,95 @@ func LoginCheck(c *gin.Context) {
 
 	gwSSLOn := c.DefaultQuery("gw_ssl_on", "no")
 	originUrl := c.DefaultQuery("url", "")
-	ip := c.ClientIP()
+	clientIP := c.ClientIP()
 
-	log.Println(gwAddress, gwPort, mac)
+	log.Println(gwAddress, gwPort, clientMac)
+
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
 	log.Println(username, password)
 
-	if username == "root" && password == "123456" {
-		token := "12345678"
-		var url string
-		if gwSSLOn == "yes" {
-			url = fmt.Sprintf("https://%s:%s/auth?token=%s&stage=login&mac=%s&ip=%s&url=%s", gwAddress, gwPort, token, mac, ip, originUrl)
-		} else {
-			url = fmt.Sprintf("http://%s:%s/auth?token=%s&stage=login&mac=%s&ip=%s&url=%s", gwAddress, gwPort, token, mac, ip, originUrl)
-		}
-
-		c.Redirect(http.StatusFound, url)
-		return
-	} else {
-		log.Println("password incorrect")
+	user, err := db.GetUserByName(username)
+	if err != nil {
+		log.Println("no such a user")
 		c.Redirect(http.StatusFound, "/login?"+c.Request.URL.RawQuery)
 		return
 	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		log.Println("password is incorrect")
+		c.Redirect(http.StatusFound, "/login?"+c.Request.URL.RawQuery)
+		return
+	}
+
+	//Generate token
+	token, err := jwt.GenerateToken(user.Id, user.Usernmae, clientIP, clientMac, user.AccessDuration)
+	if err != nil {
+		log.Println("username or password is incorrect")
+		c.Redirect(http.StatusFound, "/login?"+c.Request.URL.RawQuery)
+		return
+	}
+
+	//all things in token
+	var url string
+	if gwSSLOn == "yes" {
+		url = fmt.Sprintf("https://%s:%s/auth?token=%s&stage=login&mac=%s&ip=%s&url=%s", gwAddress, gwPort, token, clientMac, clientIP, originUrl)
+	} else {
+		url = fmt.Sprintf("http://%s:%s/auth?token=%s&stage=login&mac=%s&ip=%s&url=%s", gwAddress, gwPort, token, clientMac, clientIP, originUrl)
+	}
+
+	c.Redirect(http.StatusFound, url)
 	return
 }
 
 func Portal(c *gin.Context) {
 	log.Println(c.Request.URL.RawQuery)
-	//c.Redirect(http.StatusFound, "https://feiyu.com")
-	c.HTML(http.StatusOK, "portal.html", nil)
+
+	//c.Redirect(http.StatusFound, "https://www.cuit.edu.cn")
+	originUrl := c.DefaultQuery("url", "")
+	if originUrl == "" {
+		c.HTML(http.StatusOK, "portal.html", nil)
+		return
+	}
+
+	decodeString, err := base64.StdEncoding.DecodeString(originUrl)
+	if err != nil {
+		c.HTML(http.StatusOK, "portal.html", nil)
+		return
+	}
+
+	c.Redirect(http.StatusFound, string(decodeString))
 	return
 }
 
 func Auth(c *gin.Context) {
+	clientIP := c.DefaultQuery("ip", "")
+	clientMac := c.DefaultQuery("ip", "")
 	stage := c.DefaultQuery("stage", "")
-	if stage == "" {
-		c.String(http.StatusOK, "Auth: 0")
-		return
-	}
-
 	token := c.DefaultQuery("token", "")
-	if token == "" {
-		log.Println("token未找到")
+
+	if stage != "login" && stage != "logout" {
+		log.Println("Unknown stage")
 		c.String(http.StatusOK, "Auth: 0")
 		return
 	}
 
-	if stage == "login" {
-		if token == "12345678" {
-			c.String(http.StatusOK, "Auth: 1")
-		} else {
-			log.Println("token is incorrect")
-			c.String(http.StatusOK, "Auth: 0")
-		}
+	claims, err := jwt.ParseToken(token)
+	if err != nil {
+		log.Println("token is incorrect")
+		c.String(http.StatusOK, "Auth: 0")
 		return
 	}
 
-	c.String(http.StatusOK, "Auth: 1")
+	if claims.IP != clientIP || claims.Mac != clientMac {
+		log.Println("auth failed")
+		c.String(http.StatusOK, "Auth: 0")
+		return
+	}
+
+	c.String(http.StatusOK, string(claims.AccessDuration))
 	return
 }
 
@@ -112,4 +146,12 @@ func Msg(c *gin.Context) {
 
 	c.String(http.StatusOK, msg)
 	return
+}
+
+func AddUserAccount(c *gin.Context) {
+
+}
+
+func GetValidMacList(c *gin.Context) {
+
 }
