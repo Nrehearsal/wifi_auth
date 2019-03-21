@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"github.com/Nrehearsal/wifi_auth/db"
 )
 
 func main() {
@@ -17,6 +18,12 @@ func main() {
 	sslKey := flag.String("ssl-key", "ssl.key", "private key file for ssl certificate")
 
 	flag.Parse()
+
+	err := db.InitConnection("test.db")
+	if err != nil {
+		log.Panic(err)
+		return
+	}
 
 	router := gin.Default()
 	router.StaticFS("/static", http.Dir("static"))
@@ -34,10 +41,17 @@ func main() {
 
 	router.GET("/msg", handler.Msg)
 
+	router.POST("/adduser", handler.AddUserAccount)
+
+	router.GET("/onlinelist", handler.GetOnlineUserList)
+
+	router.POST("/deluser", handler.KickOutUser)
+
 	if *sslOn == "yes" {
 		router.RunTLS(":"+*port, *sslCert, *sslKey)
 	} else {
 		router.Run(":" + *port)
 	}
+
 	return
 }

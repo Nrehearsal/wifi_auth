@@ -9,16 +9,16 @@ var liveTime time.Duration = 5
 var signatureKey []byte
 
 type CustomClaims struct {
-	Uid            int    `json:"uid"`
-	Username       string `json:"username"`
-	IP             string `json:"ip"`
-	Mac            string `json:"mac"`
-	AccessDuration int    `json:"lifetime"`
+	Uid      int    `json:"uid"`
+	Username string `json:"username"`
+	IP       string `json:"ip"`
+	Mac      string `json:"mac"`
+	Level    int    `json:"level"`
 	jwt.StandardClaims
 }
 
 //create a new token
-func GenerateToken(uid int, username, ip, mac string, accessDuration int) (string, error) {
+func GenerateToken(uid int, username, ip, mac string, level int) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(liveTime * time.Minute)
 
@@ -27,7 +27,7 @@ func GenerateToken(uid int, username, ip, mac string, accessDuration int) (strin
 		username,
 		ip,
 		mac,
-		accessDuration,
+		level,
 		jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
 			Issuer:    "wifi_auth",

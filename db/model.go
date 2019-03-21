@@ -10,9 +10,9 @@ type BaseModel struct {
 
 type User struct {
 	BaseModel
-	Usernmae       string `gorm:"not null;unique" json:"usernmae"`
-	Password       string `gorm:"not null" json:"-"`
-	AccessDuration int    `gorm:"default:'720'" json:"access_duration"`
+	Username string `gorm:"not null;unique" json:"username"`
+	Password string `gorm:"not null" json:"-"`
+	Level    int    `gorm:"default:'1'" json:"level"`
 }
 
 type OnlineList struct {
@@ -21,5 +21,6 @@ type OnlineList struct {
 	IP     string `json:"ip"`
 	Mac    string `json:"mac"`
 	//per hour
-	Lifetime int `json:"lifetime"`
+	ExpiredAt        time.Time `json:"expired_at"`
+	ExpiredTimeStamp int64     `json:"expired_time_stamp"`
 }

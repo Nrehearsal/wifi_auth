@@ -9,7 +9,11 @@ import (
 	"github.com/Nrehearsal/wifi_auth/jwt"
 	"encoding/base64"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/Nrehearsal/wifi_auth/template"
+	"time"
 )
+
+var AdminKey string = "c16cbe118a80436b5b6fe3eb15ffc37d"
 
 func Ping(c *gin.Context) {
 	c.String(http.StatusOK, "Pong")
@@ -69,7 +73,7 @@ func LoginCheck(c *gin.Context) {
 	}
 
 	//Generate token
-	token, err := jwt.GenerateToken(user.Id, user.Usernmae, clientIP, clientMac, user.AccessDuration)
+	token, err := jwt.GenerateToken(user.Id, user.Username, clientIP, clientMac, user.Level)
 	if err != nil {
 		log.Println("username or password is incorrect")
 		c.Redirect(http.StatusFound, "/login?"+c.Request.URL.RawQuery)
@@ -133,7 +137,31 @@ func Auth(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusOK, string(claims.AccessDuration))
+	ol := db.OnlineList{
+		UserId: claims.Uid,
+		IP:     clientIP,
+		Mac:    clientMac,
+	}
+
+	/*
+	set expiration time
+	 */
+	if claims.Level == 1 {
+		ol.ExpiredAt = time.Now().Add(time.Duration(49*24) * time.Hour)
+	} else {
+		ol.ExpiredAt = time.Now().Add(time.Duration(2) * time.Hour)
+	}
+	ol.ExpiredTimeStamp = ol.ExpiredAt.Unix()
+
+	err = db.AddUser2List(&ol)
+	if err != nil {
+		log.Println("auth failed")
+		c.String(http.StatusOK, "Auth: 0")
+		return
+	}
+
+	ret := fmt.Sprintf(`Auth: %d`, claims.Level)
+	c.String(http.StatusOK, ret)
 	return
 }
 
@@ -149,9 +177,74 @@ func Msg(c *gin.Context) {
 }
 
 func AddUserAccount(c *gin.Context) {
+	key := c.DefaultQuery("key", "")
+	if key != AdminKey {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
+	userInfo := template.User{}
+	err := c.BindJSON(&userInfo)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
 
+	cipherPwd, err := bcrypt.GenerateFromPassword([]byte(userInfo.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
+
+	newUser := db.User{}
+	newUser.Username = userInfo.Username
+	newUser.Password = string(cipherPwd)
+	newUser.Level = userInfo.Level
+
+	err = db.CreateUser(&newUser)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
+	c.String(http.StatusCreated, "user added successfully")
+	return
 }
 
-func GetValidMacList(c *gin.Context) {
+func GetOnlineUserList(c *gin.Context) {
+	key := c.DefaultQuery("key", "")
+	if key != AdminKey {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
 
+	users, err := db.GetOnlineList()
+	if err != nil {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+	return
+}
+
+func KickOutUser(c *gin.Context) {
+	key := c.DefaultQuery("key", "")
+	if key != AdminKey {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
+
+	mac := c.DefaultQuery("username", "")
+	if mac == "" {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
+
+	err := db.KickOutUser(mac)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
+
+	c.String(http.StatusOK, "kick out user successfully")
+	return
 }
