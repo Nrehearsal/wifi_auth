@@ -88,6 +88,8 @@ func LoginCheck(c *gin.Context) {
 		url = fmt.Sprintf("http://%s:%s/auth?token=%s&stage=login&mac=%s&ip=%s&url=%s", gwAddress, gwPort, token, clientMac, clientIP, originUrl)
 	}
 
+	log.Println(username,"login success")
+	//TODO Add to online list
 	c.Redirect(http.StatusFound, url)
 	return
 }
@@ -188,6 +190,8 @@ func AddUserAccount(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
 		return
 	}
+	log.Println("go here")
+	log.Println(userInfo)
 
 	cipherPwd, err := bcrypt.GenerateFromPassword([]byte(userInfo.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -202,6 +206,7 @@ func AddUserAccount(c *gin.Context) {
 
 	err = db.CreateUser(&newUser)
 	if err != nil {
+		log.Println(err.Error())
 		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
 		return
 	}

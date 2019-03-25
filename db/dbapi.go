@@ -8,11 +8,12 @@ import (
 var Conn *gorm.DB
 
 func InitConnection(dbfile string) error {
-	Conn, err := gorm.Open("sqlite3", dbfile)
+	var err error
+	Conn, err = gorm.Open("sqlite3", dbfile)
 	if err != nil {
 		return err
 	}
-	defer Conn.Close()
+	//defer Conn.Close()
 
 	//TODO Build Debug Model
 	Conn.LogMode(true)
@@ -20,7 +21,6 @@ func InitConnection(dbfile string) error {
 		User{},
 		OnlineList{},
 	)
-
 	return nil
 }
 

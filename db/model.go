@@ -4,8 +4,8 @@ import "time"
 
 type BaseModel struct {
 	Id        int       `gorm:"primary_key;AUTO_INCREMENT" json:"id"`
-	CreatedAt time.Time `json:"create_at"`
-	UpdatedAt time.Time `json:"update_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type User struct {
