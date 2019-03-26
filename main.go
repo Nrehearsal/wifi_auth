@@ -26,7 +26,7 @@ func main() {
 	}
 
 	router := gin.Default()
-	router.StaticFS("/static", http.Dir("static"))
+	router.StaticFS("./static", http.Dir("static"))
 	router.LoadHTMLGlob("static/*.html")
 
 	router.GET("/ping", handler.Ping)

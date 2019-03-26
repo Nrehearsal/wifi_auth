@@ -293,6 +293,12 @@ figure {
 #signin {
   margin-top: 16px; }
 
+#alert_text {
+  margin-top: 16px;
+  font-size: 18px;
+}
+
+
 .signup-image-link {
   font-size: 14px;
   color: #222;

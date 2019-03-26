@@ -140,7 +140,7 @@ func Auth(c *gin.Context) {
 	}
 
 	ol := db.OnlineList{
-		UserId: claims.Uid,
+		Username: claims.Username,
 		IP:     clientIP,
 		Mac:    clientMac,
 	}

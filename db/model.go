@@ -16,11 +16,10 @@ type User struct {
 }
 
 type OnlineList struct {
-	BaseModel
-	UserId int    `json:"user_id"`
-	IP     string `json:"ip"`
-	Mac    string `json:"mac"`
-	//per hour
+	BaseModel        `json:"-"`
+	Username         string    `json:"username"`
+	IP               string    `json:"ip"`
+	Mac              string    `json:"mac"`
 	ExpiredAt        time.Time `json:"expired_at"`
-	ExpiredTimeStamp int64     `json:"expired_time_stamp"`
+	ExpiredTimeStamp int64     `json:"-"`
 }
