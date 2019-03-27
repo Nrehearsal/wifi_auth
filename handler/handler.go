@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"github.com/Nrehearsal/wifi_auth/db"
 	"github.com/Nrehearsal/wifi_auth/jwt"
-	"encoding/base64"
 	"golang.org/x/crypto/bcrypt"
 	"github.com/Nrehearsal/wifi_auth/template"
 	"time"
+	"encoding/base64"
 )
 
 var AdminKey string = "c16cbe118a80436b5b6fe3eb15ffc37d"
@@ -89,7 +89,25 @@ func LoginCheck(c *gin.Context) {
 	}
 
 	log.Println(username,"login success")
-	//TODO Add to online list
+
+	//TODO Add to online list, ***************for test
+	/*
+	ol := db.OnlineList{
+		Username: username,
+		IP:     clientIP,
+		Mac:    clientMac,
+	}
+	ol.ExpiredAt = time.Now().Add(time.Duration(49*24) * time.Hour)
+	ol.ExpiredTimeStamp = ol.ExpiredAt.Unix()
+
+	err = db.AddUser2List(&ol)
+	if err != nil {
+		log.Println("auth failed")
+		c.String(http.StatusOK, "Auth: 0")
+		return
+	}
+	*/
+
 	c.Redirect(http.StatusFound, url)
 	return
 }

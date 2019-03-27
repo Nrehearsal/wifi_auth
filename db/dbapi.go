@@ -26,7 +26,7 @@ func InitConnection(dbfile string) error {
 
 func GetUserByName(username string) (User, error) {
 	user := User{}
-	err := Conn.First(&user, "username = ?", username).Error
+	err := Conn.Find(&user, "username = ?", username).Error
 
 	if err != nil {
 		return user, err
