@@ -1,16 +1,17 @@
 package handler
 
 import (
+	"encoding/base64"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"time"
+
 	"github.com/Nrehearsal/wifi_auth/db"
 	"github.com/Nrehearsal/wifi_auth/jwt"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/Nrehearsal/wifi_auth/template"
-	"time"
-	"encoding/base64"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var AdminKey string = "c16cbe118a80436b5b6fe3eb15ffc37d"
@@ -88,24 +89,24 @@ func LoginCheck(c *gin.Context) {
 		url = fmt.Sprintf("http://%s:%s/auth?token=%s&stage=login&mac=%s&ip=%s&url=%s", gwAddress, gwPort, token, clientMac, clientIP, originUrl)
 	}
 
-	log.Println(username,"login success")
+	log.Println(username, "login success")
 
 	//TODO Add to online list, ***************for test
 	/*
-	ol := db.OnlineList{
-		Username: username,
-		IP:     clientIP,
-		Mac:    clientMac,
-	}
-	ol.ExpiredAt = time.Now().Add(time.Duration(49*24) * time.Hour)
-	ol.ExpiredTimeStamp = ol.ExpiredAt.Unix()
+		ol := db.OnlineList{
+			Username: username,
+			IP:     clientIP,
+			Mac:    clientMac,
+		}
+		ol.ExpiredAt = time.Now().Add(time.Duration(49*24) * time.Hour)
+		ol.ExpiredTimeStamp = ol.ExpiredAt.Unix()
 
-	err = db.AddUser2List(&ol)
-	if err != nil {
-		log.Println("auth failed")
-		c.String(http.StatusOK, "Auth: 0")
-		return
-	}
+		err = db.AddUser2List(&ol)
+		if err != nil {
+			log.Println("auth failed")
+			c.String(http.StatusOK, "Auth: 0")
+			return
+		}
 	*/
 
 	c.Redirect(http.StatusFound, url)
@@ -159,13 +160,13 @@ func Auth(c *gin.Context) {
 
 	ol := db.OnlineList{
 		Username: claims.Username,
-		IP:     clientIP,
-		Mac:    clientMac,
+		IP:       clientIP,
+		Mac:      clientMac,
 	}
 
 	/*
-	set expiration time
-	 */
+		set expiration time
+	*/
 	if claims.Level == 1 {
 		ol.ExpiredAt = time.Now().Add(time.Duration(49*24) * time.Hour)
 	} else {
@@ -196,7 +197,7 @@ func Msg(c *gin.Context) {
 	return
 }
 
-func AddUserAccount(c *gin.Context) {
+func AddUser(c *gin.Context) {
 	key := c.DefaultQuery("key", "")
 	if key != AdminKey {
 		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
@@ -256,13 +257,19 @@ func KickOutUser(c *gin.Context) {
 		return
 	}
 
-	mac := c.DefaultQuery("username", "")
+	mac := c.DefaultQuery("mac", "")
 	if mac == "" {
 		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
 		return
 	}
 
-	err := db.KickOutUser(mac)
+	username := c.DefaultQuery("username", "")
+	if username == "" {
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
+
+	err := db.KickOutUser(mac, username)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
 		return

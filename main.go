@@ -2,17 +2,18 @@ package main
 
 import (
 	"flag"
-	"github.com/Nrehearsal/wifi_auth/handler"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+
 	"github.com/Nrehearsal/wifi_auth/db"
+	"github.com/Nrehearsal/wifi_auth/handler"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	log.SetFlags(log.Lshortfile | log.Ltime)
 
-	port := flag.String("port", "8081", "http server port")
+	port := flag.String("port", "9000", "http server port")
 	sslOn := flag.String("ssl-on", "no", "is auth server ssl on")
 	sslCert := flag.String("ssl-cert", "ssl.crt", "ssl certificate file")
 	sslKey := flag.String("ssl-key", "ssl.key", "private key file for ssl certificate")
@@ -41,11 +42,11 @@ func main() {
 
 	router.GET("/msg", handler.Msg)
 
-	router.POST("/adduser", handler.AddUserAccount)
+	router.POST("/adduser", handler.AddUser)
 
 	router.GET("/onlinelist", handler.GetOnlineUserList)
 
-	router.POST("/deluser", handler.KickOutUser)
+	router.POST("/kickout", handler.KickOutUser)
 
 	if *sslOn == "yes" {
 		router.RunTLS(":"+*port, *sslCert, *sslKey)
