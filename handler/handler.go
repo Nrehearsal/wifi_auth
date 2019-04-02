@@ -135,7 +135,7 @@ func Portal(c *gin.Context) {
 
 func Auth(c *gin.Context) {
 	clientIP := c.DefaultQuery("ip", "")
-	clientMac := c.DefaultQuery("ip", "")
+	clientMac := c.DefaultQuery("mac", "")
 	stage := c.DefaultQuery("stage", "")
 	token := c.DefaultQuery("token", "")
 
@@ -154,6 +154,10 @@ func Auth(c *gin.Context) {
 
 	if claims.IP != clientIP || claims.Mac != clientMac {
 		log.Println("auth failed")
+		log.Println("clientIP: ", clientIP)
+		log.Println("tokenIP: ", claims.IP)
+		log.Println("clientMac: ", clientMac)
+		log.Println("tokenMac: ", claims.Mac)
 		c.String(http.StatusOK, "Auth: 0")
 		return
 	}
@@ -181,7 +185,9 @@ func Auth(c *gin.Context) {
 		return
 	}
 
+	log.Println("[log]Message: Auth Success")
 	ret := fmt.Sprintf(`Auth: %d`, claims.Level)
+	log.Println("[log]Message: ", ret)
 	c.String(http.StatusOK, ret)
 	return
 }
