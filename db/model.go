@@ -15,11 +15,12 @@ type User struct {
 	Level    int    `gorm:"default:'1'" json:"level"`
 }
 
-type OnlineList struct {
+type OnlineUser struct {
 	BaseModel        `json:"-"`
-	Username         string    `json:"username"`
-	IP               string    `json:"ip"`
-	Mac              string    `json:"mac"`
-	ExpiredAt        time.Time `json:"expired_at"`
-	ExpiredTimeStamp int64     `json:"-"`
+	Username         string    `json:"username" gorm:"not null;unique"`
+	Level            int       `json:"level" gorm:"not null"`
+	IP               string    `json:"ip" gorm:"not null"`
+	Mac              string    `json:"mac" gorm:"not null"`
+	ExpiredAt        time.Time `json:"expired_at" gorm:"not null"`
+	ExpiredTimeStamp int64     `json:"-" gorm:"not null"`
 }

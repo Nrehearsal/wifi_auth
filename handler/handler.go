@@ -91,24 +91,6 @@ func LoginCheck(c *gin.Context) {
 
 	log.Println(username, "login success")
 
-	//TODO Add to online list, ***************for test
-	/*
-		ol := db.OnlineList{
-			Username: username,
-			IP:     clientIP,
-			Mac:    clientMac,
-		}
-		ol.ExpiredAt = time.Now().Add(time.Duration(49*24) * time.Hour)
-		ol.ExpiredTimeStamp = ol.ExpiredAt.Unix()
-
-		err = db.AddUser2List(&ol)
-		if err != nil {
-			log.Println("auth failed")
-			c.String(http.StatusOK, "Auth: 0")
-			return
-		}
-	*/
-
 	c.Redirect(http.StatusFound, url)
 	return
 }
@@ -162,8 +144,9 @@ func Auth(c *gin.Context) {
 		return
 	}
 
-	ol := db.OnlineList{
+	ol := db.OnlineUser{
 		Username: claims.Username,
+		Level:    claims.Level,
 		IP:       clientIP,
 		Mac:      clientMac,
 	}
@@ -246,7 +229,7 @@ func GetOnlineUserList(c *gin.Context) {
 		return
 	}
 
-	users, err := db.GetOnlineList()
+	users, err := db.GetOnlineUserList()
 	if err != nil {
 		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
 		return

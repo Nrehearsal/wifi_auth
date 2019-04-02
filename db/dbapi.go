@@ -3,6 +3,8 @@ package db
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"time"
+	"log"
 )
 
 var Conn *gorm.DB
@@ -13,13 +15,12 @@ func InitConnection(dbfile string) error {
 	if err != nil {
 		return err
 	}
-	//defer Conn.Close()
 
 	//TODO Build Debug Model
 	Conn.LogMode(true)
 	Conn.AutoMigrate(
 		User{},
-		OnlineList{},
+		OnlineUser{},
 	)
 	return nil
 }
@@ -35,8 +36,8 @@ func GetUserByName(username string) (User, error) {
 	return user, nil
 }
 
-func GetOnlineList() ([]OnlineList, error) {
-	list := &[]OnlineList{}
+func GetOnlineUserList() ([]OnlineUser, error) {
+	list := &[]OnlineUser{}
 
 	err := Conn.Find(list).Error
 	if err != nil {
@@ -55,7 +56,11 @@ func CreateUser(user *User) error {
 	return nil
 }
 
-func AddUser2List(ol *OnlineList) error {
+func AddUser2List(ol *OnlineUser) error {
+	/*
+	 * make sure there is only one login record
+	 */
+	Conn.Delete(ol, "username = ?", ol.Username)
 	err := Conn.Create(ol).Error
 	if err != nil {
 		return err
@@ -65,9 +70,24 @@ func AddUser2List(ol *OnlineList) error {
 }
 
 func KickOutUser(username, mac string) error {
-	err := Conn.Delete(OnlineList{}, "mac = ? AND username = ?", mac, username).Error
+	err := Conn.Delete(OnlineUser{}, "mac = ? AND username = ?", mac, username).Error
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func CleanExpiredUserList() {
+	ticker := time.NewTicker(time.Second * 5)
+	for {
+		select {
+		case <-ticker.C:
+			err := Conn.Delete(&OnlineUser{}, "expired_time_stamp - ? <= 0", time.Now().Unix()).Error
+			if err != nil {
+				log.Println("本次定时清理任务执行失败")
+			} else {
+				log.Println("定时清理任务执行成功")
+			}
+		}
+	}
 }

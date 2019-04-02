@@ -26,6 +26,8 @@ func main() {
 		return
 	}
 
+	go db.CleanExpiredUserList()
+
 	router := gin.Default()
 	router.StaticFS("./static", http.Dir("static"))
 	router.LoadHTMLGlob("static/*.html")
