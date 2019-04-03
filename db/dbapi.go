@@ -70,7 +70,7 @@ func AddUser2List(ol *OnlineUser) error {
 }
 
 func KickOutUser(username, mac string) error {
-	err := Conn.Delete(OnlineUser{}, "mac = ? AND username = ?", mac, username).Error
+	err := Conn.Delete(OnlineUser{}, "username = ? AND mac = ?", username, mac).Error
 	if err != nil {
 		return err
 	}

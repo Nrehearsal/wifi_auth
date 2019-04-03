@@ -259,7 +259,7 @@ func KickOutUser(c *gin.Context) {
 		return
 	}
 
-	err := db.KickOutUser(mac, username)
+	err := db.KickOutUser(username, mac)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
 		return
