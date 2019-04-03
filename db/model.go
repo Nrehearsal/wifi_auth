@@ -22,5 +22,5 @@ type OnlineUser struct {
 	IP               string    `json:"ip" gorm:"not null"`
 	Mac              string    `json:"mac" gorm:"not null"`
 	ExpiredAt        time.Time `json:"expired_at" gorm:"not null"`
-	ExpiredTimeStamp int64     `json:"-" gorm:"not null"`
+	ExpiredTimeStamp int64     `json:"expired_time_stamp" gorm:"not null"`
 }
