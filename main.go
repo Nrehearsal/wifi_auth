@@ -5,8 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Nrehearsal/wifi_auth/db"
-	"github.com/Nrehearsal/wifi_auth/handler"
+	"wifi_auth/db"
+	"wifi_auth/handler"
+
 	"github.com/gin-gonic/gin"
 )
 

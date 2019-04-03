@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Nrehearsal/wifi_auth/db"
-	"github.com/Nrehearsal/wifi_auth/jwt"
-	"github.com/Nrehearsal/wifi_auth/template"
+	"wifi_auth/db"
+	"wifi_auth/jwt"
+	"wifi_auth/template"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )

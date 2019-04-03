@@ -1,8 +1,9 @@
 package jwt
 
 import (
-	"github.com/dgrijalva/jwt-go"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 var liveTime time.Duration = 5
