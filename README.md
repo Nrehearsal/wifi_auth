@@ -4,7 +4,8 @@
 
 wifidog认证协议golang实现，使用详情参考wifidog认证协议标准
 
-  - 在线示例，http://wifi.return0.top，需配合wifidog客户端使用，详情见[go_captive_portal](https://github.com/Nrehearsal/go_captive_portal)
+  - 在线示例，http://wifi.return0.top
+  - 需要配合wifidog客户端使用，详情见[go_captive_portal](https://github.com/Nrehearsal/go_captive_portal)
   - 与标准实现不同，wifi_auth对用户原始url进行了url编码，还增加了用户状态持久化等功能
   - 网关id，客户都ip，mac等参数不能为空，否则会show error message。
 
