@@ -49,9 +49,15 @@ func LoginCheck(c *gin.Context) {
 		return
 	}
 
+	clientIP := c.DefaultQuery("ip", "")
+	if clientIP == "" {
+		log.Println("no ip")
+		c.Redirect(http.StatusFound, "/msg?msg=Please contact the network administrator")
+		return
+	}
+
 	gwSSLOn := c.DefaultQuery("gw_ssl_on", "no")
 	originUrl := c.DefaultQuery("url", "")
-	clientIP := c.ClientIP()
 
 	log.Println(gwAddress, gwPort, clientMac)
 
